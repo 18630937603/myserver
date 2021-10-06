@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 
-// mongoose.connect('mongodb://username:password@localhost/sso-test')
-mongoose.connect('mongodb://localhost/sso-test')
+// mongoose.connect('mongodb://username:password@localhost/database')
+mongoose.connect('mongodb://localhost/lzh')
 
 let db = mongoose.connection
 db.on('err', () => {
