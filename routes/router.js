@@ -48,14 +48,17 @@ router.post('/login', async ctx => {
     }
 })
 
-router.post('/verify',ctx => {
+router.post('/verify',async ctx => {
     console.log('收到前端验证Token请求:',ctx.request.body)
-    if(verifyToken(ctx.request.body.token)){
-        ctx.body = {
-            err:0,
-            msg:'验证成功'
+    try{
+        if(verifyToken(ctx.request.body.token)){
+            ctx.body = {
+                err:0,
+                msg:'验证成功'
+            }
         }
-    }else{
+    }catch (e){
+        console.log('前端token验证失败')
         ctx.body = {
             err:1,
             msg:'验证失败'
