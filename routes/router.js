@@ -52,6 +52,7 @@ router.post('/verify',async ctx => {
     console.log('收到前端验证Token请求:',ctx.request.body)
     try{
         if(verifyToken(ctx.request.body.token)){
+            console.log('token验证成功')
             ctx.body = {
                 err:0,
                 msg:'验证成功'
@@ -106,34 +107,26 @@ router.post('/register',async ctx => {
 
 router.get('/todolist',async ctx => {
     try {
-        let { username,privilege } = verifyToken(ctx.query.token);
-        // 控制服务访问权限
-        if(privilege>=1){
-            let todo = await Todolist.findOne({owner_name:username}).exec();
-            // 如果该用户从未使用过todolist服务，则为他在todolist collection中创建一个专属的todolist document
-            if(!todo) {
-                let todolist = new Todolist({
-                    owner_name: username,
-                    categories: [],
-                    items: []
-                })
-                await todolist.save();
-                ctx.body = {
-                    err: 0,
-                    msg: '创建todolist服务成功',
-                    todolist: todolist
-                }
-            }else{
-                ctx.body = {
-                    err: 0,
-                    msg: '找到服务器中的todolist',
-                    todolist: todo
-                }
+        let { username } = verifyToken(ctx.query.token);
+        let todo = await Todolist.findOne({owner_name:username}).exec();
+        // 如果该用户从未使用过todolist服务，则为他在todolist collection中创建一个专属的todolist document
+        if(!todo) {
+            let todolist = new Todolist({
+                owner_name: username,
+                categories: [],
+                items: []
+            })
+            await todolist.save();
+            ctx.body = {
+                err: 0,
+                msg: '创建todolist服务成功',
+                todolist: todolist
             }
         }else{
             ctx.body = {
-                err: 1,
-                msg: '抱歉，您没有权限使用该服务'
+                err: 0,
+                msg: '找到服务器中的todolist',
+                todolist: todo
             }
         }
     }catch (e){
@@ -147,22 +140,14 @@ router.get('/todolist',async ctx => {
 
 router.post('/save',async ctx => {
     try {
-        let { username,privilege } = verifyToken(ctx.request.body.token);
-        // 控制服务访问权限
-        if(privilege>=1){
-            Todolist.updateOne({owner_name:username},{items:ctx.request.body.items},(err,res)=>{
-                if(err) console.log(err);
-                else console.log(username,'保存',ctx.request.body.items,'成功')
-            })
-            ctx.body = {
-                err: 0,
-                msg: '保存成功！'
-            }
-        }else{
-            ctx.body = {
-                err: 1,
-                msg: '抱歉，您没有权限使用该服务'
-            }
+        let { username } = verifyToken(ctx.request.body.token);
+        Todolist.updateOne({owner_name:username},{items:ctx.request.body.items},(err,res)=>{
+            if(err) console.log(err);
+            else console.log(username,'保存',ctx.request.body.items,'成功')
+        })
+        ctx.body = {
+            err: 0,
+            msg: '保存成功！'
         }
     }catch (e){
         console.log(e)
@@ -172,5 +157,49 @@ router.post('/save',async ctx => {
         }
     }
 })
+
+router.post('/changepwd',async ctx => {
+    console.log('收到前端修改密码请求：',ctx.request.body);
+    try{
+        let { username,password,new_password } = ctx.request.body;
+        let user = await User.findOne({username}).exec();
+        if(user){
+            if(user.password===password) {
+                if(testPassword(new_password)) {
+                    User.updateOne({username:username},{password:new_password},(err,res)=>{
+                        if(err) console.log(err);
+                        else console.log(username,'修改密码为',new_password,'成功');
+                    })
+                    ctx.body = {
+                        err:0,
+                        msg:'密码修改成功'
+                    }
+                }else {
+                    ctx.body = {
+                        err:1,
+                        msg:'新密码格式不正确'
+                    }
+                }
+            }else {
+                ctx.body = {
+                    err:1,
+                    msg:'原密码错误'
+                }
+            }
+        }else{
+            ctx.body = {
+                err:1,
+                msg:'用户不存在'
+            }
+        }
+    }catch (e) {
+        console.log(e)
+        ctx.body = {
+            err:4,
+            msg:'服务器内部错误'
+        }
+    }
+})
+
 
 module.exports = router
