@@ -1,9 +1,8 @@
-const Router = require('koa-router')
-const router = new Router();
+const router = require('koa-router')()
 const User = require('../db/schemas/user')
-const Todolist = require('../db/schemas/todolist')
 const { testUsername,testPassword,getToken,verifyToken } = require('../utils/utils')
 
+// 登录
 router.post('/login', async ctx => {
     console.log('收到前端登录请求:',ctx.request.body)
     try{
@@ -48,8 +47,9 @@ router.post('/login', async ctx => {
     }
 })
 
+// 验证token
 router.post('/verify',async ctx => {
-    console.log('收到前端验证Token请求:',ctx.request.body)
+    console.log('收到前端验证Token请求，用户是：',verifyToken(ctx.request.body.token).username)
     try{
         if(verifyToken(ctx.request.body.token)){
             console.log('token验证成功')
@@ -67,6 +67,7 @@ router.post('/verify',async ctx => {
     }
 })
 
+// 注册
 router.post('/register',async ctx => {
     console.log('收到前端注册请求:',ctx.request.body)
     try{
@@ -105,59 +106,7 @@ router.post('/register',async ctx => {
     }
 })
 
-router.get('/todolist',async ctx => {
-    try {
-        let { username } = verifyToken(ctx.query.token);
-        let todo = await Todolist.findOne({owner_name:username}).exec();
-        // 如果该用户从未使用过todolist服务，则为他在todolist collection中创建一个专属的todolist document
-        if(!todo) {
-            let todolist = new Todolist({
-                owner_name: username,
-                categories: [],
-                items: []
-            })
-            await todolist.save();
-            ctx.body = {
-                err: 0,
-                msg: '创建todolist服务成功',
-                todolist: todolist
-            }
-        }else{
-            ctx.body = {
-                err: 0,
-                msg: '找到服务器中的todolist',
-                todolist: todo
-            }
-        }
-    }catch (e){
-        console.log(e)
-        ctx.body = {
-            err: 1,
-            msg: '服务器待办事项处理程序出错'
-        }
-    }
-})
-
-router.post('/save',async ctx => {
-    try {
-        let { username } = verifyToken(ctx.request.body.token);
-        Todolist.updateOne({owner_name:username},{items:ctx.request.body.items},(err,res)=>{
-            if(err) console.log(err);
-            else console.log(username,'保存',ctx.request.body.items,'成功')
-        })
-        ctx.body = {
-            err: 0,
-            msg: '保存成功！'
-        }
-    }catch (e){
-        console.log(e)
-        ctx.body = {
-            err: 1,
-            msg: '服务器todolist保存处理程序出错'
-        }
-    }
-})
-
+// 修改密码
 router.post('/changepwd',async ctx => {
     console.log('收到前端修改密码请求：',ctx.request.body);
     try{
@@ -166,7 +115,7 @@ router.post('/changepwd',async ctx => {
         if(user){
             if(user.password===password) {
                 if(testPassword(new_password)) {
-                    User.updateOne({username:username},{password:new_password},(err,res)=>{
+                    User.updateOne({username:username},{password:new_password},{},(err,res)=>{
                         if(err) console.log(err);
                         else console.log(username,'修改密码为',new_password,'成功');
                     })

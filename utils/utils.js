@@ -9,8 +9,6 @@ function testPassword(password) {
     return /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,16}$/.test(password)
 }
 
-
-
 const jwt = require('jsonwebtoken')
 const SIGN_KEY = 'one apple a day keep doctors away';
 
