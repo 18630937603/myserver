@@ -49,7 +49,6 @@ router.post('/login', async ctx => {
 
 // 验证token
 router.post('/verify',async ctx => {
-    console.log('收到前端验证Token请求，用户是：',verifyToken(ctx.request.body.token).username)
     try{
         if(verifyToken(ctx.request.body.token)){
             console.log('token验证成功')
