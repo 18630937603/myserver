@@ -1,6 +1,7 @@
 .DS_Store
 /dist
-
+globalConfig.js
+test.js
 
 # local env files
 .env.local

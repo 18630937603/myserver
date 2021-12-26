@@ -1,20 +1,20 @@
-const Koa = require('koa');
-const websockify = require('koa-websocket')
-const app = websockify(new Koa());
-const db = require('./db/db')
-const router = require('./routes/router')
-const wsrouter = require('./routes/wsrouter')
+require('./globalConfig')
+const Koa = require('koa')
+const enableWebsocket = require('koa-websocket')
 const koaCors = require('koa2-cors')
 const koaBodyParser = require('koa-bodyparser')
+require('./db')
+const router = require('./router')
 
-const PORT = 8081
+const app = enableWebsocket(new Koa())
 
 app.use(koaCors())
-app.use(koaBodyParser()) // 这个得在router前面
-app.use(router.routes()).use(router.allowedMethods())
-app.ws.use(wsrouter.routes()).use(wsrouter.allowedMethods())
+    .use(koaBodyParser()) // 这个得在router前面
+    .use(router.routes())
+    .use(router.allowedMethods())
 
-
-app.listen(PORT,()=>{
-    console.log(`服务器已启动，监听端口${PORT}`)
+app.listen(globalConfig.PORT, () => {
+    console.log(`服务器已启动，监听端口${globalConfig.PORT}`)
 })
+
+
