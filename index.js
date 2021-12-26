@@ -12,7 +12,7 @@ app.use(koaCors())
     .use(koaBodyParser()) // 这个得在router前面
     .use(router.routes())
     .use(router.allowedMethods())
-    .use(wsRouter.routes())
+app.ws.use(wsRouter.routes())
     .use(wsRouter.allowedMethods())
 
 app.listen(globalConfig.PORT, () => {
