@@ -1,4 +1,4 @@
-require('./globalConfig')
+require('../globalConfig')
 const Koa = require('koa')
 const enableWebsocket = require('koa-websocket')
 const koaCors = require('koa2-cors')
